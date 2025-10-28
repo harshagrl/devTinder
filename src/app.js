@@ -5,7 +5,7 @@ app.use("/home", (req, res) => {
   res.send("Hello home page!");
 });
 app.use("/login", (req, res) => {
-  res.send("Login done right!");
+  res.send("Login done!");
 });
 app.use("/", (req, res) => {
   res.send("Hello harsh!");
