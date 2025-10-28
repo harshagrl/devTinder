@@ -1,11 +1,20 @@
 const express = require("express");
 const app = express();
 
-app.use("/home", (req, res) => {
-  res.send("Hello home page!");
+app.get("/user", (req, res) => {
+  res.send("get user page");
 });
-app.use("/login", (req, res) => {
-  res.send("Login done!");
+app.post("/user", (req, res) => {
+  res.send("post user page");
+});
+app.delete("/user", (req, res) => {
+  res.send("delete user page");
+});
+app.patch("/user", (req, res) => {
+  res.send("patch user page");
+});
+app.put("/user", (req, res) => {
+  res.send("put user page");
 });
 app.use("/", (req, res) => {
   res.send("Hello harsh!");
