@@ -1,44 +1,25 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
-
-const { adminAuth, userAuth } = require("./middlewares/auth");
-
-app.use("/admin", adminAuth);
-
-app.get("/user", userAuth, (req, res) => {
-  res.send("User is here");
+const User = require("./models/user");
+const connectDB = require("./config/database.js");
+app.use(express.json());
+app.post("/signup", async (req, res) => {
+  const user = new User(req.body);
+  try {
+    await user.save();
+    res.send("User added successfully");
+  } catch (err) {
+    res.status(400).send("Error saving user data: " + err.message);
+  }
 });
-
-app.get("/admin/getAllData", (req, res) => {
-  res.send("Sent all data");
-});
-
-app.get("/admin/deleteData", (req, res) => {
-  res.send("delete a user data");
-});
-
-// app.get("/user/:userId/:name/:pass", (req, res) => {
-//   console.log(req.params);
-//   res.send({ name: "harsh", age: 21 });
-// });
-// app.get("/user", (req, res) => {
-//   res.send({ name: "harsh", age: 22 });
-// });
-// app.post("/user", (req, res) => {
-//   res.send("post user page");
-// });
-// app.delete("/user", (req, res) => {
-//   res.send("delete user page");
-// });
-// app.patch("/user", (req, res) => {
-//   res.send("patch user page");
-// });
-// app.put("/user", (req, res) => {
-//   res.send("put user page");
-// });
-// app.use("/", (req, res) => {
-//   res.send("Hello harsh!");
-// });
-app.listen(3000, () => {
-  console.log("Server is running at port 3000");
-});
+connectDB()
+  .then(() => {
+    console.log("Database connection established...");
+    app.listen(3000, () => {
+      console.log("Server is running at port 3000");
+    });
+  })
+  .catch((err) => {
+    console.log("Database cannot be connected: " + err.message);
+  });
