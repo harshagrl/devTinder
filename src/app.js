@@ -60,6 +60,35 @@ app.delete("/deleteuser", async (req, res) => {
     res.status(400).send("Something went wrong");
   }
 });
+
+app.patch("/updateuser", async (req, res) => {
+  // //update user based on email
+  // const { email, ...data } = req.body;
+  // try {
+  //   const user = await User.findOneAndUpdate(
+  //     { email },
+  //     { $set: data },
+  //     {
+  //       returnDocument: "after",
+  //     }
+  //   );
+  //   res.send(user);
+  // } catch (err) {
+  //   res.status(400).send("Something went wrong");
+  // }
+
+  // update user based on id
+  const userId = req.body.userId;
+  const data = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(userId, data, {
+      returnDocument: "after",
+    });
+    res.send(user);
+  } catch (err) {
+    res.status(400).send("Something went wrong");
+  }
+});
 connectDB()
   .then(() => {
     console.log("Database connection established...");
