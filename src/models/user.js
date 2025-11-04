@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const validator = require("validator");
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -19,30 +19,23 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      validate: {
-        validator: function (v) {
-          return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v);
-        },
-        message: (props) => `${props.value} is not a valid email address!`,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Email is not valid");
+        }
       },
     },
     password: {
       type: String,
       required: true,
-      minLength: 8,
-      validate: {
-        validator: function (v) {
-          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-            v
-          );
-        },
-        message:
-          "Password must contain at least 8 characters, including uppercase, lowercase, number and special character",
+      validate(value) {
+        if (!validator.isStrongPassword(value)) {
+          throw new Error("Password is not strong enough");
+        }
       },
     },
     age: {
       type: Number,
-      min: 18,
     },
     gender: {
       type: String,
@@ -66,6 +59,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://www.freeiconspng.com/thumbs/person-icon/clipart--person-icon--cliparts-15.png",
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error("Photo URL is not valid");
+        }
+      },
     },
   },
   {
