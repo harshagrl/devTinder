@@ -11,6 +11,42 @@ const validateSignupData = (req) => {
   }
 };
 
+const validateUpdateData = (data) => {
+  const ALLOWED_UPDATES = [
+    "lastName",
+    "photoUrl",
+    "about",
+    "skills",
+    "age",
+    "gender",
+  ];
+  console.log("Update data received:", data);
+  const isUpdateAllowed = Object.keys(data).every((k) =>
+    ALLOWED_UPDATES.includes(k)
+  );
+  if (!isUpdateAllowed) {
+    throw new Error(
+      `Invalid update fields. Allowed fields are: ${ALLOWED_UPDATES.join(", ")}`
+    );
+  }
+  if (data.skills) {
+    if (!Array.isArray(data.skills)) {
+      throw new Error("Skills must be an array");
+    }
+    if (data.skills.length > 10) {
+      throw new Error("Skills array cannot contain more than 10 items");
+    }
+    if (
+      data.skills.some((skill) => typeof skill !== "string" || !skill.trim())
+    ) {
+      throw new Error("All skills must be non-empty strings");
+    }
+
+    data.skills = [...new Set(data.skills.map((skill) => skill.trim()))];
+  }
+};
+
 module.exports = {
   validateSignupData,
+  validateUpdateData,
 };

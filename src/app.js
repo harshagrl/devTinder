@@ -3,7 +3,10 @@ const express = require("express");
 const app = express();
 const User = require("./models/user");
 const connectDB = require("./config/database.js");
-const { validateSignupData } = require("./utils/validation.js");
+const {
+  validateSignupData,
+  validateUpdateData,
+} = require("./utils/validation.js");
 const bcrypt = require("bcrypt");
 app.use(express.json());
 app.post("/signup", async (req, res) => {
@@ -88,30 +91,25 @@ app.patch("/updateuser/:userId", async (req, res) => {
   // }
 
   // update user based on id
-  const userId = req.params?.userId;
-  const data = req.body;
   try {
-    const ALLOWED_UPDATES = [
-      "lastName",
-      "photoUrl",
-      "about",
-      "skills",
-      "age",
-      "gender",
-    ];
-    const isUpdateAllowed = Object.keys(data).every((k) =>
-      ALLOWED_UPDATES.includes(k)
+    const userId = req.params?.userId;
+    const data = req.body;
+    console.log("Attempting update for user:", userId);
+    console.log("Update data:", data);
+    validateUpdateData(data);
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: data },
+      {
+        new: true,
+        returnDocument: "after",
+        runValidators: true,
+        context: "query",
+      }
     );
-    if (!isUpdateAllowed) {
-      throw new Error("Update not allowed");
+    if (!user) {
+      return res.status(404).send("User not found");
     }
-    if (data?.skills.length > 10) {
-      throw new Error("Cannot add more than 10 skills");
-    }
-    const user = await User.findByIdAndUpdate(userId, data, {
-      returnDocument: "after",
-      runValidators: true,
-    });
     res.send(user);
   } catch (err) {
     res.status(400).send("Update failed: " + err.message);

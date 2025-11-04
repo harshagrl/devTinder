@@ -54,6 +54,12 @@ const userSchema = new mongoose.Schema(
     },
     skills: {
       type: [String],
+      validate: {
+        validator: function (array) {
+          return array.length <= 10;
+        },
+        message: "Skills array cannot contain more than 10 items",
+      },
     },
     photoUrl: {
       type: String,
