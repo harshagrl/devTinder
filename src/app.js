@@ -26,6 +26,26 @@ app.post("/signup", async (req, res) => {
     res.status(400).send("ERROR: " + err.message);
   }
 });
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      throw new Error("All fields are mandatory");
+    }
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) {
+      res.send("Login Successful!!");
+    } else {
+      throw new Error("Invalid credentials");
+    }
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
+});
 app.get("/user", async (req, res) => {
   const userEmail = req.body.email;
   try {
@@ -94,8 +114,7 @@ app.patch("/updateuser/:userId", async (req, res) => {
   try {
     const userId = req.params?.userId;
     const data = req.body;
-    console.log("Attempting update for user:", userId);
-    console.log("Update data:", data);
+
     validateUpdateData(data);
     const user = await User.findByIdAndUpdate(
       userId,

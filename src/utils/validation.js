@@ -20,7 +20,7 @@ const validateUpdateData = (data) => {
     "age",
     "gender",
   ];
-  console.log("Update data received:", data);
+
   const isUpdateAllowed = Object.keys(data).every((k) =>
     ALLOWED_UPDATES.includes(k)
   );
