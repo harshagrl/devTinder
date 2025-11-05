@@ -10,6 +10,7 @@ const {
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/auth.js");
 app.use(express.json());
 app.use(cookieParser());
 app.post("/signup", async (req, res) => {
@@ -41,8 +42,12 @@ app.post("/login", async (req, res) => {
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (isPasswordValid) {
-      const token = await jwt.sign({ _id: user._id }, "Dev@Tinder123//");
-      res.cookie("token", token);
+      const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 7 * 3600000),
+      });
 
       res.send("Login Successful!!");
     } else {
@@ -52,69 +57,22 @@ app.post("/login", async (req, res) => {
     res.status(400).send("ERROR: " + err.message);
   }
 });
-app.get("/profile", async (req, res) => {
-  const cookies = req.cookies;
-  const { token } = cookies;
-  if (!token) {
-    return res.status(401).send("Unauthorized: No token provided");
-  }
+app.get("/profile", userAuth, async (req, res) => {
   try {
-    const decoded = jwt.verify(token, "Dev@Tinder123//");
-    const userId = decoded._id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
+    const user = req.user;
     res.send(user);
   } catch (err) {
-    return res.status(401).send("Unauthorized: Invalid token");
-  }
-});
-app.get("/user", async (req, res) => {
-  const userEmail = req.body.email;
-  try {
-    const user = await User.find({ email: userEmail });
-    if (user.length === 0) {
-      res.status(404).send("User not found");
-    } else {
-      res.send(user);
-    }
-  } catch (err) {
-    res.status(400).send("Something went wrong");
-  }
-
-  // try {
-  //   const { id } = req.body;
-  //   const user = await User.findById(id);
-  //   if (!user) {
-  //     res.status(404).send("User not found");
-  //   }
-  //   res.send(user);
-  // } catch (err) {
-  //   res.status(400).send("Something went wrong");
-  // }
-});
-
-app.get("/feed", async (req, res) => {
-  try {
-    const users = await User.find({});
-    if (users.length === 0) {
-      res.status(404).send("User not found");
-    } else {
-      res.send(users);
-    }
-  } catch (err) {
-    res.status(400).send("Something went wrong");
+    return res.status(401).send("ERROR: " + err.message);
   }
 });
 
-app.delete("/deleteuser", async (req, res) => {
-  const userId = req.body.userId;
+app.post("/sendConnectionRequest", userAuth, async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(userId);
-    res.send("User deleted Successfully");
+    const user = req.user;
+
+    res.send(user.firstName + " sent connection request");
   } catch (err) {
-    res.status(400).send("Something went wrong");
+    return res.status(401).send("ERROR: " + err.message);
   }
 });
 
