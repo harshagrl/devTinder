@@ -8,7 +8,10 @@ const {
   validateUpdateData,
 } = require("./utils/validation.js");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 app.use(express.json());
+app.use(cookieParser());
 app.post("/signup", async (req, res) => {
   try {
     validateSignupData(req);
@@ -38,12 +41,33 @@ app.post("/login", async (req, res) => {
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (isPasswordValid) {
+      const token = await jwt.sign({ _id: user._id }, "Dev@Tinder123//");
+      res.cookie("token", token);
+
       res.send("Login Successful!!");
     } else {
       throw new Error("Invalid credentials");
     }
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
+  }
+});
+app.get("/profile", async (req, res) => {
+  const cookies = req.cookies;
+  const { token } = cookies;
+  if (!token) {
+    return res.status(401).send("Unauthorized: No token provided");
+  }
+  try {
+    const decoded = jwt.verify(token, "Dev@Tinder123//");
+    const userId = decoded._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    res.send(user);
+  } catch (err) {
+    return res.status(401).send("Unauthorized: Invalid token");
   }
 });
 app.get("/user", async (req, res) => {
