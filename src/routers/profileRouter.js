@@ -4,7 +4,7 @@ const { userAuth } = require("../middlewares/auth.js");
 const User = require("../models/user");
 const { validateUpdateData } = require("../utils/validation.js");
 
-profileRouter.get("/profile", userAuth, async (req, res) => {
+profileRouter.get("/profile/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
     res.send(user);
@@ -13,42 +13,25 @@ profileRouter.get("/profile", userAuth, async (req, res) => {
   }
 });
 
-profileRouter.patch("/updateuser/:userId", async (req, res) => {
-  // //update user based on email
-  // const { email, ...data } = req.body;
-  // try {
-  //   const user = await User.findOneAndUpdate(
-  //     { email },
-  //     { $set: data },
-  //     {
-  //       returnDocument: "after",
-  //     }
-  //   );
-  //   res.send(user);
-  // } catch (err) {
-  //   res.status(400).send("Something went wrong");
-  // }
-
-  // update user based on id
+profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   try {
     const userId = req.params?.userId;
     const data = req.body;
 
     validateUpdateData(data);
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { $set: data },
-      {
-        new: true,
-        returnDocument: "after",
-        runValidators: true,
-        context: "query",
-      }
-    );
+    const user = req.user;
+
     if (!user) {
       return res.status(404).send("User not found");
     }
-    res.send(user);
+    Object.keys(data).forEach((key) => {
+      user[key] = data[key];
+    });
+    await user.save();
+    res.json({
+      message: `${user.firstName}, your profile was updated successfully`,
+      data: user,
+    });
   } catch (err) {
     res.status(400).send("Update failed: " + err.message);
   }
