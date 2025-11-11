@@ -3,6 +3,7 @@ const profileRouter = express.Router();
 const { userAuth } = require("../middlewares/auth.js");
 const User = require("../models/user");
 const { validateUpdateData } = require("../utils/validation.js");
+const bcrypt = require("bcrypt");
 
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
   try {
@@ -15,7 +16,6 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
 
 profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   try {
-    const userId = req.params?.userId;
     const data = req.body;
 
     validateUpdateData(data);
@@ -37,4 +37,26 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   }
 });
 
+profileRouter.post("/profile/passwordChange", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      throw new Error("All fields are mandatory");
+    }
+    if (oldPassword === newPassword) {
+      throw new Error("New password must be different from old password");
+    }
+    const isOldPasswordValid = await user.validatePassword(oldPassword);
+    if (!isOldPasswordValid) {
+      throw new Error("Old password is incorrect");
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+    res.send("Password changed successfully");
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
+});
 module.exports = profileRouter;
