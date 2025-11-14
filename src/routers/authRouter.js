@@ -45,6 +45,7 @@ authRouter.post("/login", async (req, res) => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
+          photoUrl: user.photoUrl,
         },
       });
     } else {
