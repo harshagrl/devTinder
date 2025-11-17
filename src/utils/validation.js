@@ -13,6 +13,7 @@ const validateSignupData = (req) => {
 
 const validateUpdateData = (data) => {
   const ALLOWED_UPDATES = [
+    "firstName",
     "lastName",
     "photoUrl",
     "about",
