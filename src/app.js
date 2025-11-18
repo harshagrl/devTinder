@@ -7,7 +7,13 @@ const profileRouter = require("./routers/profileRouter.js");
 const requestRouter = require("./routers/requestRouter.js");
 const userRouter = require("./routers/userRouter.js");
 const cors = require("cors");
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
 app.use("/", authRouter);
